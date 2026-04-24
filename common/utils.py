@@ -31,7 +31,7 @@ def _tvm_ffi_dtype_to_torch_dtype(ffi_dtype) -> torch.dtype:
         raise ValueError(f"Unsupported dtype: {ffi_dtype}")
 
 
-def rand_torch_tensor(shape: list[int], dtype: torch.dtype, device="cuda") -> torch.Tensor:
+def rand_torch_tensor(shape: list[int], dtype: torch.dtype, device="mps") -> torch.Tensor:
     """Get a random torch tensor."""
 
     if dtype == torch.float16:
