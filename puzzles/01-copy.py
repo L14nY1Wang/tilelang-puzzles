@@ -105,6 +105,8 @@ def tl_copy_1d_multi_threads(A):
     B = T.empty((N,), T.float16)
 
     # TODO: Implement this function
+    with T.Kernel(1, threads=256) as _:
+        T.copy(A, B)
 
     return B
 
@@ -152,6 +154,11 @@ def tl_copy_1d_parallel(A, BLOCK_N: int):
     B = T.empty((N,), T.float16)
 
     # TODO: Implement this function
+    with T.Kernel(N // BLOCK_N, threads=256) as pid_n:
+        T.copy(
+            A[pid_n * BLOCK_N : (pid_n + 1) * BLOCK_N],
+            B[pid_n * BLOCK_N : (pid_n + 1) * BLOCK_N],
+        )
 
     return B
 

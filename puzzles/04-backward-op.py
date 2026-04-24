@@ -55,6 +55,21 @@ def tl_mul_relu_bcast(A, B, BLOCK_N: int, BLOCK_M: int):
     C = T.empty((N, M), dtype)
 
     # TODO: Implement this function
+    with T.Kernel(N // BLOCK_N, M // BLOCK_M, threads=256) as (pid_n, pid_m):
+        n_idx = pid_n * BLOCK_N
+        m_idx = pid_m * BLOCK_M
+
+        rA = T.alloc_fragment((BLOCK_N, BLOCK_M), dtype)
+        rB = T.alloc_fragment((BLOCK_M,), dtype)
+        rC = T.alloc_fragment((BLOCK_N, BLOCK_M), dtype)
+
+        T.copy(A[n_idx, m_idx], rA)
+        T.copy(B[m_idx], rB)
+
+        for i, j in T.Parallel(BLOCK_N, BLOCK_M):
+            rC[i, j] = max(0, rA[i, j] * rB[j])
+        
+        T.copy(rC, C[n_idx, m_idx])
 
     return C
 
