@@ -64,6 +64,28 @@ def tl_reduce_sum(A, BLOCK_N: int, BLOCK_M: int):
     B = T.empty((N,), dtype)
 
     # TODO: Implement this function
+    with T.Kernel(N // BLOCK_N, threads=256) as pid_n:
+        n_idx = pid_n * BLOCK_N
+
+        rA = T.alloc((BLOCK_N, BLOCK_M), dtype)
+        rB = T.alloc((BLOCK_N,), dtype)
+
+        for i in T.Parallel(0, BLOCK_N):
+            rB[i] = T.float32(0)
+        
+        # BUG
+        for pid_m in T.Serial(M // BLOCK_M):
+            m_idx = pid_m * BLOCK_M
+            T.copy(A[n_idx, m_idx], rA)
+
+            for i in T.Parallel(BLOCK_N):
+                row_sum = T.alloc_var(T.float32)
+                row_sum = T.float32(0)
+                for j in T.Serial(BLOCK_M):
+                    row_sum += rA[i, j]
+                rB[i] += row_sum
+        
+        T.copy(rB, B[n_idx])
 
     return B
 

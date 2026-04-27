@@ -144,6 +144,23 @@ def tl_mul_relu_bwd(A, B, dC, BLOCK_N: int, BLOCK_M: int):
     dA = T.empty((N, M), dtype)
 
     # TODO: Implement this function
+    with T.Kernel(N // BLOCK_N, M // BLOCK_M, threads=256) as (pid_n, pid_m):
+        n_idx = pid_n * BLOCK_N
+        m_idx = pid_m * BLOCK_M
+
+        rA = T.alloc_fragment((BLOCK_N, BLOCK_M), dtype)
+        rB = T.alloc_fragment((BLOCK_M,), dtype)
+        rdC = T.alloc_fragment((BLOCK_N, BLOCK_M), dtype)
+        rdA = T.alloc_fragment((BLOCK_N, BLOCK_M), dtype)
+
+        T.copy(A[n_idx, m_idx], rA)
+        T.copy(B[m_idx], rB)
+        T.copy(dC[n_idx, m_idx], rdC)
+
+        for i, j in T.Parallel(BLOCK_N, BLOCK_M):
+            rdA[i, j] = T.if_then_else(rA[i, j] * rB[j] > 0, 1, 0) * rdC[i, j] * rB[j]
+        
+        T.copy(rdA, dA[n_idx, m_idx])
 
     return dA
 
