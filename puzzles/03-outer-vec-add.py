@@ -58,7 +58,7 @@ def tl_outer_add(A, B, BLOCK_N: int, BLOCK_M: int):
     C = T.empty((N, M), dtype)
 
     # TODO: Implement this function
-    with T.kernel(N // BLOCK_N, M // BLOCK_M, threads=256) as (pid_n, pid_m):
+    with T.Kernel(N // BLOCK_N, M // BLOCK_M, threads=256) as (pid_n, pid_m):
         rA = T.alloc_fragment((BLOCK_N,), dtype)
         rB = T.alloc_fragment((BLOCK_M,), dtype)
         rC = T.alloc_fragment((BLOCK_N, BLOCK_M), dtype)

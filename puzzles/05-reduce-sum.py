@@ -67,13 +67,12 @@ def tl_reduce_sum(A, BLOCK_N: int, BLOCK_M: int):
     with T.Kernel(N // BLOCK_N, threads=256) as pid_n:
         n_idx = pid_n * BLOCK_N
 
-        rA = T.alloc((BLOCK_N, BLOCK_M), dtype)
-        rB = T.alloc((BLOCK_N,), dtype)
+        rA = T.alloc_fragment((BLOCK_N, BLOCK_M), dtype)
+        rB = T.alloc_fragment((BLOCK_N,), dtype)
 
-        for i in T.Parallel(0, BLOCK_N):
+        for i in T.Parallel(BLOCK_N):
             rB[i] = T.float32(0)
         
-        # BUG
         for pid_m in T.Serial(M // BLOCK_M):
             m_idx = pid_m * BLOCK_M
             T.copy(A[n_idx, m_idx], rA)

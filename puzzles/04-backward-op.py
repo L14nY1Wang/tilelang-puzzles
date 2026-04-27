@@ -67,7 +67,8 @@ def tl_mul_relu_bcast(A, B, BLOCK_N: int, BLOCK_M: int):
         T.copy(B[m_idx], rB)
 
         for i, j in T.Parallel(BLOCK_N, BLOCK_M):
-            rC[i, j] = max(0, rA[i, j] * rB[j])
+            result = rA[i, j] * rB[j]
+            rC[i, j] = T.if_then_else(result > 0, result, T.float16(0))
         
         T.copy(rC, C[n_idx, m_idx])
 
